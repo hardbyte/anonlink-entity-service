@@ -183,7 +183,6 @@ def calculate_mapping(resource_id):
     dp_ids = get_dataprovider_ids(db, resource_id)
 
     logger.debug("Data providers: {}".format(dp_ids))
-    assert len(dp_ids) == 2, "Only support two party comparisons at the moment"
 
     logger.debug("Setting start time")
     with db.cursor() as cur:
@@ -194,8 +193,12 @@ def calculate_mapping(resource_id):
                     """,
                     [resource_id])
     db.commit()
-
-    compute_similarity.delay(resource_id, dp_ids, threshold)
+    if len(dp_ids) == 2:
+        logger.debug("Starting a two party comparison")
+        compute_two_party_similarity.delay(resource_id, dp_ids, threshold)
+    elif len(dp_ids) > 2:
+        logger.debug("Multiparty matching!")
+        compute_multi_party_similarity.delay(resource_id, dp_ids, threshold)
 
     logger.info("Entity similarity computation scheduled")
 
@@ -203,7 +206,22 @@ def calculate_mapping(resource_id):
 
 
 @celery.task()
-def compute_similarity(resource_id, dp_ids, threshold):
+def compute_multi_party_similarity(resource_id, dp_ids, threshold=1.0):
+    """
+    Find entities in common at A, B, C...
+
+    """
+
+    filters = [cache.get_deserialized_filter(dp_id) for dp_id in dp_ids]
+
+
+    # Match all parties against the first parties data
+    for i in range(1, len(filters)):
+        anonlink.entitymatch.calculate_filter_similarity(filters[0], filters[1])
+
+
+@celery.task()
+def compute_two_party_similarity(resource_id, dp_ids, threshold):
     """
 
     """
