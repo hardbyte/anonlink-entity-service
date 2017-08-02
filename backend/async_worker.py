@@ -214,10 +214,33 @@ def compute_multi_party_similarity(resource_id, dp_ids, threshold=1.0):
 
     filters = [cache.get_deserialized_filter(dp_id) for dp_id in dp_ids]
 
-
+    match_results = []
     # Match all parties against the first parties data
     for i in range(1, len(filters)):
-        anonlink.entitymatch.calculate_filter_similarity(filters[0], filters[1])
+        similarity = anonlink.entitymatch.calculate_filter_similarity(filters[0], filters[i])
+        mapping = anonlink.network_flow.map_entities(similarity,
+                                                     threshold=threshold,
+                                                     method='bipartite')
+        match_results.append(mapping)
+
+    """
+    Now make one mapping result of the form:
+    
+    [
+        [1, 3, 4],
+        [2, 4, 5],
+        ...
+    ]
+    """
+
+    res = {
+        "mapping": None,
+    }
+
+    for i, f in enumerate(filters):
+        res['lenf{}'.format(i+1)] = len(f)
+
+    save_and_permute.delay(res, resource_id)
 
 
 @celery.task()
