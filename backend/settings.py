@@ -80,6 +80,9 @@ class Config(object):
 
     RAW_FILENAME_FMT = "quarantine/{}.txt"
     BIN_FILENAME_FMT = "raw-clks/{}.bin"
+
+    SIMILARITY_CHUNKS_FILENAME_FMT = "partial-scores/{}/{}.bin"
+
     SIMILARITY_SCORES_FILENAME_FMT = "similarity-scores/{}.csv"
 
     @classmethod

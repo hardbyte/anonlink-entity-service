@@ -27,7 +27,7 @@ def deserialize_bitarray(bytes_data):
 
 
 """
-The binary format used:
+The binary format used for CLKS:
 
 - "!" Use network byte order (big-endian).
 - "1I" Store the index in 4 bytes as an unsigned int.
@@ -36,8 +36,21 @@ The binary format used:
 
 https://docs.python.org/3/library/struct.html#format-strings
 """
-bit_packing_fmt = "!1I128s1H"
-bit_packed_element_size = struct.calcsize(bit_packing_fmt)
+bloomfilter_binary_fmt = "!1I128s1H"
+bloomfilter_binary_element_size = struct.calcsize(bloomfilter_binary_fmt)
+
+
+"""
+The binary format used for similarity scores
+
+- "!" Use network byte order (big-endian).
+- "2I" Store the two index values as 4 bytes unsigned ints
+- "1d" Store the similarity as a double
+
+https://docs.python.org/3/library/struct.html#format-strings
+"""
+score_binary_fmt = "!1I128s1H"
+score_binary_element_size = struct.calcsize(score_binary_fmt)
 
 
 def binary_pack_filters(filters):
@@ -51,15 +64,31 @@ def binary_pack_filters(filters):
     """
     for ba_clk, indx, count in filters:
         yield struct.pack(
-          bit_packing_fmt,
+          bloomfilter_binary_fmt,
           indx,
           ba_clk.tobytes(),
           count
         )
 
 
+def binary_pack_scores(similarity_scores):
+    """Efficient packing of similarity scores
+
+    :return:
+        An iterable of bytes.
+    """
+    for indx_a, indx_b, similarity in similarity_scores:
+        yield struct.pack(
+          score_binary_fmt,
+          indx_a,
+          indx_b,
+          similarity
+        )
+
+
+
 def binary_unpack_one(data):
-    index, clk_bytes, count = struct.unpack(bit_packing_fmt, data)
+    index, clk_bytes, count = struct.unpack(bloomfilter_binary_fmt, data)
     assert len(clk_bytes) == 128
 
     ba = bitarray(endian="big")
@@ -70,11 +99,11 @@ def binary_unpack_one(data):
 def binary_unpack_filters(streamable_data, max_bytes=None):
     filters = []
     bytes_consumed = 0
-    for raw_bytes in streamable_data.stream(bit_packed_element_size):
+    for raw_bytes in streamable_data.stream(bloomfilter_binary_element_size):
         assert len(raw_bytes) == 134
         filters.append(binary_unpack_one(raw_bytes))
 
-        bytes_consumed += bit_packed_element_size
+        bytes_consumed += bloomfilter_binary_element_size
         if max_bytes is not None and bytes_consumed >= max_bytes:
             break
 

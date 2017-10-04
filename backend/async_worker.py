@@ -15,7 +15,7 @@ import cache
 from database import *
 from object_store import connect_to_object_store
 from serialization import load_public_key, binary_unpack_filters, \
-    binary_pack_filters, deserialize_filters, bit_packed_element_size, deserialize_bitarray
+    binary_pack_filters, deserialize_filters, bloomfilter_binary_element_size, deserialize_bitarray
 from settings import Config as config
 from utils import chunks, iterable_to_stream, fmt_bytes
 
@@ -124,7 +124,7 @@ def handle_raw_upload(resource_id, dp_id, receipt_token):
 
     # Output file is binary
     filename = config.BIN_FILENAME_FMT.format(receipt_token)
-    num_bytes = expected_size * bit_packed_element_size
+    num_bytes = expected_size * bloomfilter_binary_element_size
 
     # Set up streaming processing pipeline
     buffered_stream = iterable_to_stream(raw_data_response.stream())
@@ -525,7 +525,8 @@ def mark_mapping_complete(resource_id):
 @celery.task()
 def compute_filter_similarity(chunk_info_dp1, chunk_info_dp2, resource_id, threshold):
     """Compute filter similarity between a chunk of filters in dataprovider 1,
-    and a chunk of filters in dataprovider 2.
+    and a chunk of filters in dataprovider 2 - saving the results in a binary
+    file.
 
     :param chunk_info_dp1:
         A tuple containing:
@@ -535,7 +536,8 @@ def compute_filter_similarity(chunk_info_dp1, chunk_info_dp2, resource_id, thres
     :param chunk_info_dp2:
     :param resource_id:
     :param threshold:
-    :return:
+
+    :return: (match_length, result_filename)
     """
     logger.debug("Computing similarity for a chunk of filters")
 
@@ -578,15 +580,25 @@ def compute_filter_similarity(chunk_info_dp1, chunk_info_dp2, resource_id, thres
     for (ia, score, ib) in chunk_results:
         partial_sparse_result.append((ia + offset_dp1, score, ib + offset_dp2))
 
+    # Save the result into minio
+    filename = config.SIMILARITY_CHUNKS_FILENAME_FMT.format(resource_id, '-'.join(chunk_info_dp1[0], chunk_info_dp2[0]))
+    mc = connect_to_object_store()
+    mc.put_object(
+        config.MINIO_BUCKET,
+        filename,
+        data=buffer,
+        length=len(data)
+    )
+
     return partial_sparse_result
 
 
 def get_chunk_from_object_store(chunk_info):
     mc = connect_to_object_store()
-    assert bit_packed_element_size == 134, "bit packed size doesn't match expectations"
+    assert bloomfilter_binary_element_size == 134, "bit packed size doesn't match expectations"
     chunk_length = chunk_info[2] - chunk_info[1]
-    chunk_bytes = bit_packed_element_size * chunk_length
-    chunk_stream = mc.get_partial_object(config.MINIO_BUCKET, chunk_info[0], bit_packed_element_size * chunk_info[1], chunk_bytes)
+    chunk_bytes = bloomfilter_binary_element_size * chunk_length
+    chunk_stream = mc.get_partial_object(config.MINIO_BUCKET, chunk_info[0], bloomfilter_binary_element_size * chunk_info[1], chunk_bytes)
 
     chunk_data = binary_unpack_filters(chunk_stream, chunk_bytes)
 
