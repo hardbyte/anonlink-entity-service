@@ -529,7 +529,7 @@ class MappingStatus(Resource):
             "elapsed": stats['elapsed'].total_seconds(),
             "total": str(total_comparisons),
             "current": str(comparisons),
-            "progress": (comparisons / total_comparisons) if total_comparisons is not 'NA' else 0.0
+            "progress": (comparisons / total_comparisons) if total_comparisons is not None else 0.0
         })
 
         return schema.dump(stats)
