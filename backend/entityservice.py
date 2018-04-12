@@ -494,23 +494,44 @@ class MappingStatus(Resource):
     """
 
     def get(self, resource_id):
+        # return compute time elapsed and number of comparisons here
+        dbinstance = get_db()
+
         mapping_resource_fields = {
             'ready': fields.Boolean,
+            'message': fields.String,
             'time_added': fields.DateTime(dt_format='iso8601'),
             'time_started': fields.DateTime(dt_format='iso8601'),
             'time_completed': fields.DateTime(dt_format='iso8601'),
-            'threshold': fields.Float()
+            'threshold': fields.Float(),
+            "elapsed": fields.Float(),
+            "total": fields.Int(),
+            "current": fields.Int(),
+            "progress": fields.Float()
         }
 
         app.logger.debug("Getting list of all mappings")
         query = '''
-        SELECT ready, time_added, time_started, time_completed, threshold
+        SELECT ready, time_added, time_started, time_completed, threshold, (now() - time_started) as elapsed
         FROM mappings
         WHERE
         resource_id = %s
         '''
 
-        stats = db.query_db(get_db(), query, (resource_id,), one=True)
+        stats = db.query_db(dbinstance, query, (resource_id,), one=True)
+
+        print(stats)
+        comparisons = cache.get_progress(resource_id)
+        total_comparisons = db.get_total_comparisons_for_mapping(dbinstance, resource_id)
+
+        stats.update({
+            "message": "Mapping isn't ready.",
+            "elapsed": stats['elapsed'].total_seconds(),
+            "total": str(total_comparisons),
+            "current": str(comparisons),
+            "progress": (comparisons / total_comparisons) if total_comparisons is not 'NA' else 0.0
+        })
+
         return marshal(stats, mapping_resource_fields)
 
 

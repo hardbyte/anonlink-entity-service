@@ -4,6 +4,16 @@
 Changelog
 =========
 
+Version 1.8.0 (2018-04-12)
+--------------------------
+
+Small breaking change to progress API. Previously when calling ``GET /mappings/<RESOURCE-ID>/``
+the http status code was ``503`` for a mapping that was in progress. This made it hard for clients
+to determine when they had been rate limited (which also returns a ``503``). Now that endpoint will
+return with status code ``200``. The json body of an in progress response stays the same - in particular
+note it has a ``ready`` attribute. However the preferred api is to call
+``GET /mappings/<RESOURCE-ID>/status``.
+
 Version 1.7.3 (2018-03-16)
 --------------------------
 
