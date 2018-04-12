@@ -491,7 +491,10 @@ class Mapping(Resource):
 class MappingStatus(Resource):
 
     """
-    Status of a particular mappings
+    Status of a particular mapping.
+
+
+    Massive TODO - should this be a protected endpoint?
     """
 
     def get(self, resource_id):
@@ -512,7 +515,15 @@ class MappingStatus(Resource):
 
         app.logger.debug("Getting status of mapping: {}".format(resource_id))
         query = '''
-        SELECT ready, time_added, time_started, time_completed, threshold, (now() - time_started) as elapsed
+        SELECT 
+          ready, 
+          time_started is null as started,
+          time_added, 
+          time_started,
+          time_completed, 
+          threshold, 
+          COALESCE((now() - time_started), interval '0' second) as elapsed
+
         FROM mappings
         WHERE
         resource_id = %s
@@ -520,13 +531,18 @@ class MappingStatus(Resource):
 
         stats = db.query_db(dbinstance, query, (resource_id,), one=True)
 
-        print(stats)
+        app.logger.info(stats)
         comparisons = cache.get_progress(resource_id)
         total_comparisons = db.get_total_comparisons_for_mapping(dbinstance, resource_id)
+        app.logger.info("Number of comparisons: {}".format(total_comparisons))
+        state_messages = {
+             (False, False): "Waiting to start computing similarity",
+             (True, False): "Computing similarity",
+             (True, True): "Complete"
+        }
 
         stats.update({
-            "message": "Mapping isn't ready.",
-            "elapsed": stats['elapsed'].total_seconds(),
+            "message": state_messages[(stats['started'], stats['ready'])],
             "total": str(total_comparisons),
             "current": str(comparisons),
             "progress": (comparisons / total_comparisons) if total_comparisons is not None else 0.0
