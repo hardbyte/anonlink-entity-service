@@ -416,21 +416,6 @@ class Mapping(Resource):
         else:
             app.logger.warning("Unimplemented result type")
 
-    def get_mapping_progress(self, dbinstance, resource_id):
-        # return compute time elapsed and number of comparisons here
-        time_elapsed = db.get_mapping_time(dbinstance, resource_id)
-        app.logger.debug("Time elapsed so far: {}".format(time_elapsed))
-        comparisons = cache.get_progress(resource_id)
-        total_comparisons = db.get_total_comparisons_for_mapping(dbinstance, resource_id)
-        progress = {
-            "message": "Mapping isn't ready.",
-            "elapsed": time_elapsed.total_seconds(),
-            "total": str(total_comparisons),
-            "current": str(comparisons),
-            "progress": (comparisons / total_comparisons) if total_comparisons is not 'NA' else 0.0
-        }
-        return progress
-
     def authorise_get_request(self, resource_id):
         if request.headers is None or 'Authorization' not in request.headers:
             safe_fail_request(401, message="Authentication token required")

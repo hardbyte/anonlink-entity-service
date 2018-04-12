@@ -39,6 +39,15 @@ url = os.environ.get("ENTITY_SERVICE_URL", "http://localhost:8851/api/v1")
 logger.info("Entity Service URL: {}".format(url))
 
 
+def retrieve_status(mapping_id, token):
+    logger.debug("Retrieving status")
+    response = requests.get(url + '/mappings/{}/status'.format(mapping_id),
+                            timeout=http_request_timeout,
+                            headers={'Authorization': token})
+    logger.debug(response.status_code)
+    return response.json()
+
+
 def retrieve_result(mapping_id, token):
     logger.debug("Retrieving mapping")
     response = requests.get(url + '/mappings/{}'.format(mapping_id),
@@ -104,7 +113,7 @@ def mapping_test(party1_filters, party2_filters, s1, s2):
     logger.debug("New mapping request created with id: {}".format(id))
 
     logger.debug("Checking mapping status without authentication token")
-    r = requests.get(url + '/mappings/{}'.format(id), timeout=http_request_timeout)
+    r = requests.get(url + '/mappings/{}/status'.format(id), timeout=http_request_timeout)
     logger.debug(r.status_code, r.json())
     assert r.status_code == 401
 
@@ -131,12 +140,14 @@ def mapping_test(party1_filters, party2_filters, s1, s2):
 
     logger.debug("Checking status with valid token (before adding data)")
     r = requests.get(
-        url + '/mappings/{}'.format(id),
+        url + '/mappings/{}/status'.format(id),
         timeout=http_request_timeout,
         headers={'Authorization': new_map_response['result_token']})
-    logger.debug(r.status_code, r.json())
-    assert r.status_code == 503
-
+    logger.debug(r.status_code)
+    assert r.status_code == 200
+    r_data = r.json()
+    logger.debug(r_data)
+    assert 'ready' in r_data and not r_data['ready']
     logger.info("Adding first party's filter data")
 
     party1_data = {
@@ -188,7 +199,7 @@ def mapping_test(party1_filters, party2_filters, s1, s2):
     time.sleep(1)
 
     response = retrieve_result(id, new_map_response['result_token'])
-    while not response.status_code == 200:
+    while not response.json()['ready']:
         snooze = 5 + dataset_size/20000
         #logger.debug("Sleeping for another {} seconds".format(snooze))
         time.sleep(snooze + rate_limit_delay)
@@ -198,6 +209,7 @@ def mapping_test(party1_filters, party2_filters, s1, s2):
             logger.debug(response.json())
 
     assert response.status_code == 200
+    assert response.json()['started'] and response.json()['ready']
 
     logger.debug("Success")
     mapping_result = response.json()["mapping"]
@@ -333,10 +345,10 @@ def similarity_score_test(party1_filters, party2_filters, s1, s2):
     logger.debug("Going to sleep to give the server some processing time...")
     time.sleep(1)
 
-    logger.debug("Retrieving similarity scores")
+    logger.debug("Retrieving status of computing similarity scores")
     response = retrieve_result(id, new_map_response['result_token'])
 
-    while not response.status_code == 200:
+    while not response.json()['ready']:
         snooze = 5 + dataset_size/20000
         #logger.debug("Sleeping for another {} seconds".format(snooze))
         time.sleep(snooze + rate_limit_delay)
@@ -503,7 +515,7 @@ def permutation_test(party1_filters, party2_filters, s1, s2, base=2):
 
     logger.debug("Retrieving results as organisation 2")
     response = retrieve_result(id, r2['receipt-token'])
-    while not response.status_code == 200:
+    while not response.json()['ready']:
         snooze = 5 + 3*dataset_size/1000
         logger.info("Sleeping for another {} seconds".format(snooze))
         time.sleep(snooze)
@@ -602,7 +614,9 @@ def permutation_unencrypted_mask_test(party1_filters, party2_filters, s1, s2, ba
         timeout=http_request_timeout,
         headers={'Authorization': new_map_response['result_token']})
     logger.debug(r.status_code, r.json())
-    assert r.status_code == 503
+    assert r.status_code == 200
+    assert 'started' in r.json()
+    assert 'ready' in r.json() and not r.json()['ready']
 
     time.sleep(rate_limit_delay)
 
