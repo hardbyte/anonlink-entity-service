@@ -7,7 +7,8 @@ import os.path
 import platform
 
 from flask import Flask, g, request, Response
-from flask_restful import Resource, Api, abort, fields, marshal_with, marshal
+from flask_restful import Resource, Api, abort, marshal_with, marshal, fields
+import marshmallow
 
 try:
     import ijson.backends.yajl2_cffi as ijson
@@ -497,20 +498,19 @@ class MappingStatus(Resource):
         # return compute time elapsed and number of comparisons here
         dbinstance = get_db()
 
-        mapping_resource_fields = {
-            'ready': fields.Boolean,
-            'message': fields.String,
-            'time_added': fields.DateTime(dt_format='iso8601'),
-            'time_started': fields.DateTime(dt_format='iso8601'),
-            'time_completed': fields.DateTime(dt_format='iso8601'),
-            'threshold': fields.Float(),
-            "elapsed": fields.Float(),
-            "total": fields.Int(),
-            "current": fields.Int(),
-            "progress": fields.Float()
-        }
+        class StatusSchema(marshmallow.Schema):
+            #time_added = marshmallow.fields.DateTime(dt_format='iso8601')
+            #time_started = marshmallow.fields.DateTime(dt_format='iso8601')
+            #time_completed = marshmallow.fields.DateTime(dt_format='iso8601')
+            elapsed = marshmallow.fields.Function(lambda x: x['elapsed'].total_seconds())
 
-        app.logger.debug("Getting list of all mappings")
+            class Meta:
+                fields = ('ready', 'started', 'message', 'time_added', 'time_started',
+                          'time_completed', 'threshold', 'total', 'current', 'progress')
+
+        schema = StatusSchema()
+
+        app.logger.debug("Getting status of mapping: {}".format(resource_id))
         query = '''
         SELECT ready, time_added, time_started, time_completed, threshold, (now() - time_started) as elapsed
         FROM mappings
@@ -532,7 +532,7 @@ class MappingStatus(Resource):
             "progress": (comparisons / total_comparisons) if total_comparisons is not 'NA' else 0.0
         })
 
-        return marshal(stats, mapping_resource_fields)
+        return schema.dump(stats)
 
 
 class Status(Resource):
