@@ -72,7 +72,7 @@ node('docker') {
     stage('Documentation') {
       try {
         sh '''
-          mkdir htmlbuild
+          mkdir -p htmlbuild
           docker run -v `pwd`/docs:/src -v `pwd`/htmlbuild:/build quay.io/n1analytics/entity-app:doc-builder
         '''
         setBuildStatus("Release Packaged", "SUCCESS");

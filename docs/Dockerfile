@@ -15,7 +15,7 @@ WORKDIR /src
 RUN pip install -U -r requirements.txt
 USER user
 
-# We expect the user to mount the sources to build...
+# Note we expect the user to mount the sources to build...
 #ADD . /src
 
 CMD python -m sphinx /src /build
