@@ -76,16 +76,24 @@ node('docker') {
           rm -fr htmlbuild/*
           docker run -v `pwd`/docs:/src -v `pwd`/htmlbuild:/build quay.io/n1analytics/entity-app:doc-builder
         '''
+
+
+        version = readFile('./backend/VERSION')
+        echo "Entity Service Backend Version: $version"
+
+        docfile = "entity-service-$version.zip"
+        echo "Docfile: $docfile"
+
+        sh """
+            cd htmlbuild
+            zip -q -r $docfile *
+            mv $docfile ../
+        """
+
+        archiveArtifacts artifacts: docfile, fingerprint: true
+
         setBuildStatus("Documentation Built", "SUCCESS");
 
-        publishHTML (target: [
-            allowMissing: false,
-            alwaysLinkToLastBuild: false,
-            keepAll: true,
-            reportDir: 'htmlbuild',
-            reportFiles: 'index.html',
-            reportName: "Entity Service Docs"
-        ])
       } catch (err) {
         errorMsg = "Couldn't build docs";
         throw err;
