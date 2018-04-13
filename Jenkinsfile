@@ -73,8 +73,8 @@ node('docker') {
       try {
         sh '''
           mkdir -p htmlbuild
-          rm -fr htmlbuild/*
           docker run -v `pwd`/docs:/src -v `pwd`/htmlbuild:/build quay.io/n1analytics/entity-app:doc-builder
+          ls -al htmlbuild
         '''
 
 
@@ -85,9 +85,9 @@ node('docker') {
         println("Docfile: $docfile")
 
         sh """
-            cd htmlbuild
-            zip -q -r $docfile *
-            mv $docfile ../
+          cd htmlbuild
+          zip -q -r $docfile *
+          mv $docfile ../
         """
 
         archiveArtifacts artifacts: docfile, fingerprint: true

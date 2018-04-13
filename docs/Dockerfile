@@ -18,4 +18,4 @@ USER user
 # Note we expect the user to mount the sources to build...
 #ADD . /src
 
-CMD python -m sphinx /src /build
+CMD rm -fr /build && python -m sphinx /src /build
