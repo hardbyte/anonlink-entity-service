@@ -96,9 +96,12 @@ node('docker') {
       try {
         sh '''
           ./tools/make-release.sh
+          ls /tmp/*.zip
         '''
         setBuildStatus("Release Packaged", "SUCCESS");
-        archiveArtifacts artifacts: "/tmp/n1-es-*.zip"
+
+
+        //archiveArtifacts artifacts: "/tmp/n1-es-*.zip"
 
       } catch (err) {
         errorMsg = "Couldn't build release";
