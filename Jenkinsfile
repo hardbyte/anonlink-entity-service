@@ -29,6 +29,8 @@ node('docker') {
             docker build -t quay.io/n1analytics/entity-app .
             cd ../frontend
             docker build -t quay.io/n1analytics/entity-nginx .
+            cd ../docs
+            docker build -t quay.io/n1analytics/entity-app:doc-builder .
           """
           setBuildStatus("Docker build complete", "PENDING");
       } catch (err) {
