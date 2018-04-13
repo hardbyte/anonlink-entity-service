@@ -366,8 +366,7 @@ class Mapping(Resource):
 
         # Check that the mapping is ready
         if not mapping['ready']:
-            progress = self.get_mapping_progress(dbinstance, resource_id)
-            return progress, 503
+            return MappingStatus().get(resource_id)
 
         if mapping['result_type'] == 'mapping':
             app.logger.info("Mapping result being returned")
