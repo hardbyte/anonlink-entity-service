@@ -67,12 +67,36 @@ node('docker') {
       }
     }
 
+    stage('Documentation') {
+      try {
+        sh '''
+          mkdir htmlbuild
+          docker run -it -v `pwd`/docs:/docs -v `pwd`/htmlbuild:/build quay.io/n1analytics/entity-app:doc-builder
+        '''
+        setBuildStatus("Release Packaged", "SUCCESS");
+
+        publishHTML (target: [
+            allowMissing: false,
+            alwaysLinkToLastBuild: false,
+            keepAll: true,
+            reportDir: 'htmlbuild',
+            reportFiles: 'index.html',
+            reportName: "Entity Service Docs"
+        ])
+      } catch (err) {
+        errorMsg = "Couldn't build docs";
+        throw err;
+      }
+    }
+
     stage('Package Release') {
       try {
         sh '''
           ./tools/make-release.sh
         '''
         setBuildStatus("Release Packaged", "SUCCESS");
+
+        archiveArtifacts artifacts: "/tmp/n1-es-*.zip"
       } catch (err) {
         errorMsg = "Couldn't build release";
         throw err;
