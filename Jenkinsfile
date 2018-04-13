@@ -73,6 +73,7 @@ node('docker') {
       try {
         sh '''
           mkdir -p htmlbuild
+          rm -fr htmlbuild/*
           docker run -v `pwd`/docs:/src -v `pwd`/htmlbuild:/build quay.io/n1analytics/entity-app:doc-builder
         '''
         setBuildStatus("Documentation Built", "SUCCESS");
