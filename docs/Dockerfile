@@ -6,7 +6,7 @@ MAINTAINER "Brian Thorne <brian.thorne@data61.csiro.au>"
 USER root
 RUN apt-get update \
   && apt-get install --no-install-recommends --no-install-suggests -y \
-	pandoc \
+	pandoc dvipng texlive-extra-utils \
   && rm -rf /var/lib/apt/lists/*
 
 ADD doc-requirements.txt /src/requirements.txt
