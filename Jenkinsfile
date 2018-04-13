@@ -78,11 +78,11 @@ node('docker') {
         '''
 
 
-        version = readFile('./backend/VERSION')
-        echo "Entity Service Backend Version: $version"
+        version = readFile('./backend/VERSION').trim()
+        println("Entity Service Backend Version: $version")
 
         docfile = "entity-service-$version.zip"
-        echo "Docfile: $docfile"
+        println("Docfile: $docfile")
 
         sh """
             cd htmlbuild
