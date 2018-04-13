@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+
+# This creates a source release
+
 set -e
 cd $(dirname "$0")
 export APPVERSION=$(cat ../backend/VERSION)

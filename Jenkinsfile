@@ -8,8 +8,10 @@ void setBuildStatus(String message, String state) {
 }
 
 node('docker') {
-  stage('Checkout') {
-      checkout scm
+
+  stage ('Clean Checkout') {
+    deleteDir()
+    checkout scm
   }
 
   // Login to quay.io
@@ -75,7 +77,7 @@ node('docker') {
           mkdir -p html
           chmod 777 html
 
-          docker run -v `pwd`/docs:/src -v `pwd`/html:/build quay.io/n1analytics/entity-app:doc-builder python -m sphinx /src /build
+          docker run -v `pwd`/docs:/src -v `pwd`/html:/build quay.io/n1analytics/entity-app:doc-builder
 
           cd html
           zip -q -r n1-docs.zip *
@@ -93,18 +95,15 @@ node('docker') {
 
     stage('Package Release') {
       try {
-        sh '''
-          ./tools/make-release.sh
-          ls /tmp/*.zip
-        '''
 
         version = readFile('./backend/VERSION').trim()
-        println "Entity Service Backend Version: $version"
 
-        //archiveArtifacts artifacts: "/tmp/n1-es-*.zip"
+        sh '''
+          ./tools/make-release.sh
+        '''
 
+        archiveArtifacts artifacts: "/tmp/n1-es-$version.zip"
         setBuildStatus("Release Packaged", "SUCCESS");
-
 
       } catch (err) {
         errorMsg = "Couldn't build release";
@@ -132,8 +131,8 @@ node('docker') {
     }
 
   } catch (err) {
-        currentBuild.result = 'FAILURE'
-        setBuildStatus(errorMsg,  "FAILURE");
+    currentBuild.result = 'FAILURE'
+    setBuildStatus(errorMsg,  "FAILURE");
   } finally {
     sh './tools/ci_cleanup.sh'
   }
