@@ -67,6 +67,18 @@ node('docker') {
       }
     }
 
+    stage('Package Release') {
+      try {
+        sh '''
+          ./tools/make-release.sh
+        '''
+        setBuildStatus("Release Packaged", "SUCCESS");
+      } catch (err) {
+        errorMsg = "Couldn't build release";
+        throw err;
+      }
+    }
+
     stage('Publish') {
       // Login to quay.io
       withCredentials([usernamePassword(credentialsId: 'quayion1analyticsbuilder', usernameVariable: 'USERNAME_QUAY', passwordVariable: 'PASSWORD_QUAY')]) {
