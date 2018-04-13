@@ -72,26 +72,17 @@ node('docker') {
     stage('Documentation') {
       try {
         sh '''
-          mkdir -p htmlbuild
-          docker run -v `pwd`/docs:/src -v `pwd`/htmlbuild:/build quay.io/n1analytics/entity-app:doc-builder
-          ls -al htmlbuild
+          mkdir -p html
+          chmod 777 html
+
+          docker run -v `pwd`/docs:/src -v `pwd`/html:/build quay.io/n1analytics/entity-app:doc-builder python -m sphinx /src /build
+
+          cd html
+          zip -q -r n1-docs.zip *
+          mv n1-docs.zip ../
         '''
 
-
-        version = readFile('./backend/VERSION').trim()
-        println("Entity Service Backend Version: $version")
-
-        docfile = "entity-service-$version.zip"
-        println("Docfile: $docfile")
-
-        sh """
-          cd htmlbuild
-          zip -q -r $docfile *
-          mv $docfile ../
-        """
-
-        archiveArtifacts artifacts: docfile, fingerprint: true
-
+        archiveArtifacts artifacts: 'n1-docs.zip', fingerprint: true
         setBuildStatus("Documentation Built", "SUCCESS");
 
       } catch (err) {
@@ -106,10 +97,14 @@ node('docker') {
           ./tools/make-release.sh
           ls /tmp/*.zip
         '''
-        setBuildStatus("Release Packaged", "SUCCESS");
 
+        version = readFile('./backend/VERSION').trim()
+        println "Entity Service Backend Version: $version"
 
         //archiveArtifacts artifacts: "/tmp/n1-es-*.zip"
+
+        setBuildStatus("Release Packaged", "SUCCESS");
+
 
       } catch (err) {
         errorMsg = "Couldn't build release";

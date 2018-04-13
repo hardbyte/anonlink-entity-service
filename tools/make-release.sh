@@ -13,8 +13,8 @@ rm -fr /tmp/n1-es/*.iml
 rm -fr /tmp/n1-es/.ipynb*
 rm -fr /tmp/n1-es/docs/*
 
-mkdir -p htmlbuild
-docker run -v `pwd`/../docs:/src -v /tmp/n1-es/docs:/build quay.io/n1analytics/entity-app:doc-builder
+# Release should include docs
+#docker run -v `pwd`/../docs:/src -v /tmp/n1-es/docs:/build quay.io/n1analytics/entity-app:doc-builder
 
 cd /tmp/n1-es
 find . | grep -E "(__pycache__|\.pyc)" | xargs rm -fr
