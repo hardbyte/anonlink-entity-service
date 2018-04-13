@@ -75,7 +75,7 @@ node('docker') {
           mkdir -p htmlbuild
           docker run -v `pwd`/docs:/src -v `pwd`/htmlbuild:/build quay.io/n1analytics/entity-app:doc-builder
         '''
-        setBuildStatus("Release Packaged", "SUCCESS");
+        setBuildStatus("Documentation Built", "SUCCESS");
 
         publishHTML (target: [
             allowMissing: false,
@@ -97,8 +97,8 @@ node('docker') {
           ./tools/make-release.sh
         '''
         setBuildStatus("Release Packaged", "SUCCESS");
-
         archiveArtifacts artifacts: "/tmp/n1-es-*.zip"
+
       } catch (err) {
         errorMsg = "Couldn't build release";
         throw err;
@@ -114,6 +114,7 @@ node('docker') {
             sh '''
               ./tools/upload.sh
             '''
+            setBuildStatus("Published Docker Images", "SUCCESS");
         } catch (Exception err) {
           errorMsg = "Publishing docker images to quay.io failed";
           throw err
