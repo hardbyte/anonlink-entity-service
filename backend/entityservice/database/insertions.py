@@ -10,7 +10,7 @@ def insert_new_project(cur, result_type, schema, access_token, project_id, num_p
                                 INSERT INTO projects
                                 (project_id, access_token, schema, notes, parties, result_type)
                                 VALUES
-                                (%s, %s, false, %s, %s, %s)
+                                (%s, %s, %s, %s, %s, %s)
                                 RETURNING project_id;
                                 """,
                                 [
@@ -20,7 +20,6 @@ def insert_new_project(cur, result_type, schema, access_token, project_id, num_p
                                     notes,
                                     num_parties,
                                     result_type
-
                                 ])
 
 

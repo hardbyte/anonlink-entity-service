@@ -5,6 +5,7 @@ from flask_restful import Resource
 
 from entityservice import cache
 import entityservice.database as db
+from entityservice.database import get_db
 from entityservice.version import __version__
 from entityservice.messages import INVALID_ACCESS_MSG
 

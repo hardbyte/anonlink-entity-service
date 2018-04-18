@@ -9,9 +9,9 @@ class Project(object):
     Exists before insertion into the database.
     """
     def __init__(self, resource_id, parties=2):
-        app.logger.info("Creating mapping")
+        app.logger.info("Creating project codes")
         self.parties = parties
-        self.resource_id = resource_id
+        self.project_id = resource_id
         self.result_token = generate_code()
 
         # Order is important here

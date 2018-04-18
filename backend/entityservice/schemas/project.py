@@ -13,6 +13,12 @@ class NewProjectSchema(Schema):
     schema = fields.Nested(SchemaSchema())
 
 
+class ProjectCreationResponse(Schema):
+    project_id = fields.Str()
+    update_tokens = fields.List(fields.Str())
+    result_token = fields.Str()
+
+
 class ProjectDescription(NewProjectSchema):
     project_id = fields.Str()
 

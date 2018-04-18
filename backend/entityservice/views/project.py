@@ -8,8 +8,7 @@ import entityservice.cache as cache
 import entityservice.database as db
 
 from entityservice.async_worker import handle_raw_upload
-from entityservice import app, fmt_bytes, \
-    connect_to_object_store, database as db
+from entityservice import app, fmt_bytes
 from entityservice.utils import safe_fail_request, get_stream, get_json, generate_code
 from entityservice.serialization import check_public_key
 from entityservice.database import get_db
@@ -17,7 +16,7 @@ from entityservice.views import abort_if_project_doesnt_exist, abort_if_invalid_
     abort_if_invalid_results_token, dataprovider_id_if_authorize, node_id_if_authorize
 from entityservice import models
 from entityservice.object_store import connect_to_object_store
-from entityservice.schemas import ProjectListSummary, ProjectDescription
+from entityservice.schemas import ProjectListSummary, ProjectDescription, ProjectCreationResponse
 from entityservice.settings import Config as config
 
 
@@ -97,14 +96,16 @@ class ProjectList(Resource):
             app.logger.debug("Committing transaction")
             conn.commit()
 
-        return project_dao
+        response_schema = ProjectCreationResponse()
+
+        return response_schema.dump(project_dao)
 
 
 class Project(Resource):
 
-    def delete(self, resource_id):
+    def delete(self, project_id):
         # Check the resource exists
-        abort_if_project_doesnt_exist(resource_id)
+        abort_if_project_doesnt_exist(project_id)
         app.logger.info("Deleting a project resource and all data")
         # First get the filenames of everything in the object store
 
@@ -112,28 +113,29 @@ class Project(Resource):
 
         mc = connect_to_object_store()
 
-        project_from_db = db.get_project(dbinstance, resource_id)
+        project_from_db = db.get_project(dbinstance, project_id)
 
         # If result_type is similarity_scores, delete the corresponding similarity_scores file
         if project_from_db['result_type'] == 'similarity_scores':
             app.logger.info("Deleting the similarity scores file")
-            filename = db.get_similarity_scores_filename(dbinstance, resource_id)['file']
+            filename = db.get_similarity_scores_filename(dbinstance, project_id)['file']
             mc.remove_object(config.MINIO_BUCKET, filename)
 
-        db.delete_project(get_db(), resource_id)
+        db.delete_project(get_db(), project_id)
 
         return '', 204
 
-    def get(self, resource_id):
+    def get(self, project_id):
         """
         This endpoint describes a Project.
         """
+        app.logger.info("Getting detail for a project")
+        dp_id, project_id = self.authorise_get_request(project_id)
 
-        dp_id, project_id = self.authorise_get_request(resource_id)
+        project_object = db.get_project(project_id)
 
         project_description_schema = ProjectDescription()
-
-
+        return project_description_schema.dump(project_object)
 
 
     def get_mapping_progress(self, dbinstance, resource_id):
