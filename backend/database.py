@@ -302,7 +302,6 @@ def get_smaller_dataset_size_for_mapping(db, resource_id):
           mappings.resource_id=%s""", [resource_id], one=True)['smaller']
 
 
-
 def get_total_comparisons_for_mapping(db, resource_id):
     """
     :return total number of comparisons for this job
