@@ -186,3 +186,167 @@ class TestMappingTests(MappingTestsBase):
         mapping_result = response.json()['mapping']
         self.assertGreater(len(mapping_result), 70)
         self.assertLess(len(mapping_result), 80)
+
+    def test_mapping_2_party_data_uploaded_50k(self):
+        new_map = requests.post(self.url + '/mappings',
+                                         headers={'Authorization': 'invalid'},
+                                         json={
+                                             'schema': TestMappingTests.schema,
+                                             'result_type': 'mapping',
+                                             'threshold': 0.9
+                                         }).json()
+        self.mappings.append(new_map['resource_id'])
+        d1, d2 = generate_overlapping_clk_data([50000, 50000], overlap=0.5)
+        r1 = requests.put(
+            self.url + '/mappings/{}'.format(new_map['resource_id']),
+            headers={'Authorization': new_map['update_tokens'][0]},
+            json={
+                'clks': d1
+            }
+        )
+        r2 = requests.put(
+            self.url + '/mappings/{}'.format(new_map['resource_id']),
+            headers={'Authorization': new_map['update_tokens'][1]},
+            json={
+                'clks': d2
+            }
+        )
+        self.assertEqual(r1.status_code, 201)
+        self.assertEqual(r2.status_code, 201)
+
+        time.sleep(5)
+        response = requests.get(self.url + '/mappings/{}'.format(new_map['resource_id']),
+                                headers={'Authorization': new_map['result_token']})
+
+        mapping_result = response.json()['mapping']
+        self.assertGreater(len(mapping_result), 20000)
+        self.assertLess(len(mapping_result), 30000)
+
+    def test_mapping_2_party_data_uploaded_500k(self):
+        new_map = requests.post(self.url + '/mappings',
+                                         headers={'Authorization': 'invalid'},
+                                         json={
+                                             'schema': TestMappingTests.schema,
+                                             'result_type': 'mapping',
+                                             'threshold': 0.9
+                                         }).json()
+        self.mappings.append(new_map['resource_id'])
+        d1, d2 = generate_overlapping_clk_data([500000, 500000], overlap=0.5)
+        r1 = requests.put(
+            self.url + '/mappings/{}'.format(new_map['resource_id']),
+            headers={'Authorization': new_map['update_tokens'][0]},
+            json={
+                'clks': d1
+            }
+        )
+        r2 = requests.put(
+            self.url + '/mappings/{}'.format(new_map['resource_id']),
+            headers={'Authorization': new_map['update_tokens'][1]},
+            json={
+                'clks': d2
+            }
+        )
+        self.assertEqual(r1.status_code, 201)
+        self.assertEqual(r2.status_code, 201)
+
+        response = requests.get(self.url + '/mappings/{}/status'.format(new_map['resource_id']),
+                                headers={'Authorization': new_map['result_token']})
+        while not response.json()['ready']:
+            print(response.json())
+            time.sleep(10)
+            response = requests.get(self.url + '/mappings/{}/status'.format(new_map['resource_id']),
+                                    headers={'Authorization': new_map['result_token']})
+
+        response = requests.get(self.url + '/mappings/{}'.format(new_map['resource_id']),
+                                headers={'Authorization': new_map['result_token']})
+
+        mapping_result = response.json()['mapping']
+        self.assertGreater(len(mapping_result), 200000)
+        self.assertLess(len(mapping_result), 300000)
+
+    def test_mapping_2_party_data_uploaded_500k_timeout(self):
+        new_map = requests.post(self.url + '/mappings',
+                                         headers={'Authorization': 'invalid'},
+                                         json={
+                                             'schema': TestMappingTests.schema,
+                                             'result_type': 'mapping',
+                                             'threshold': 0.9
+                                         }).json()
+        self.mappings.append(new_map['resource_id'])
+        d1, d2 = generate_overlapping_clk_data([500000, 500000], overlap=0.5)
+        r1 = requests.put(
+            self.url + '/mappings/{}'.format(new_map['resource_id']),
+            headers={'Authorization': new_map['update_tokens'][0]},
+            timeout=None,
+            json={
+                'clks': d1
+            }
+        )
+        r2 = requests.put(
+            self.url + '/mappings/{}'.format(new_map['resource_id']),
+            headers={'Authorization': new_map['update_tokens'][1]},
+            timeout=None,
+            json={
+                'clks': d2
+            }
+        )
+        self.assertEqual(r1.status_code, 201)
+        self.assertEqual(r2.status_code, 201)
+
+        response = requests.get(self.url + '/mappings/{}/status'.format(new_map['resource_id']),
+                                headers={'Authorization': new_map['result_token']})
+        while not response.json()['ready']:
+            print(response.json())
+            time.sleep(10)
+            response = requests.get(self.url + '/mappings/{}/status'.format(new_map['resource_id']),
+                                    headers={'Authorization': new_map['result_token']})
+
+        response = requests.get(self.url + '/mappings/{}'.format(new_map['resource_id']),
+                                headers={'Authorization': new_map['result_token']})
+
+        mapping_result = response.json()['mapping']
+        self.assertGreater(len(mapping_result), 200000)
+        self.assertLess(len(mapping_result), 300000)
+
+    def test_mapping_2_party_data_uploaded_10M_1M(self):
+        new_map = requests.post(self.url + '/mappings',
+                                         headers={'Authorization': 'invalid'},
+                                         json={
+                                             'schema': TestMappingTests.schema,
+                                             'result_type': 'mapping',
+                                             'threshold': 0.9
+                                         }).json()
+        self.mappings.append(new_map['resource_id'])
+        d1, d2 = generate_overlapping_clk_data([10000000, 1000000], overlap=0.5)
+        r1 = requests.put(
+            self.url + '/mappings/{}'.format(new_map['resource_id']),
+            headers={'Authorization': new_map['update_tokens'][0]},
+            timeout=None,
+            json={
+                'clks': d1
+            }
+        )
+        r2 = requests.put(
+            self.url + '/mappings/{}'.format(new_map['resource_id']),
+            headers={'Authorization': new_map['update_tokens'][1]},
+            timeout=None,
+            json={
+                'clks': d2
+            }
+        )
+        self.assertEqual(r1.status_code, 201)
+        self.assertEqual(r2.status_code, 201)
+
+        response = requests.get(self.url + '/mappings/{}/status'.format(new_map['resource_id']),
+                                headers={'Authorization': new_map['result_token']})
+        while not response.json()['ready']:
+            print(response.json())
+            time.sleep(60)
+            response = requests.get(self.url + '/mappings/{}/status'.format(new_map['resource_id']),
+                                    headers={'Authorization': new_map['result_token']})
+
+        response = requests.get(self.url + '/mappings/{}'.format(new_map['resource_id']),
+                                headers={'Authorization': new_map['result_token']})
+
+        mapping_result = response.json()['mapping']
+        self.assertGreater(len(mapping_result), 500000)
