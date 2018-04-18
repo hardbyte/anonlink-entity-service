@@ -3,7 +3,6 @@ services:
 
   db:
     image: postgres:10
-    mem_limit: 6000m
     environment:
       - POSTGRES_PASSWORD=rX%QpV7Xgyrz
     volumes:
@@ -46,8 +45,8 @@ services:
     environment:
       - DEBUG=true
       - DATABASE_PASSWORD=rX%QpV7Xgyrz
-      - FLASK_APP=entityservice.py
-    entrypoint: flask initdb
+      - FLASK_APP=entityservice
+    entrypoint: python -m flask initdb
     depends_on:
       - db
 
@@ -58,7 +57,7 @@ services:
     depends_on:
       - redis
       - db
-    entrypoint: celery -A async_worker worker --loglevel=debug -Q celery,compute
+    entrypoint: celery -A entityservice.async_worker worker --loglevel=debug -Q celery,compute
     environment:
       - DATABASE_PASSWORD=rX%QpV7Xgyrz
       - ENTITY_MATCH_THRESHOLD=0.90

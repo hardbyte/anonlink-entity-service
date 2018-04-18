@@ -2,7 +2,7 @@ import os
 import json
 from anonlink import randomnames, entitymatch
 
-from serialization import *
+from entityservice.serialization import *
 
 
 def create_test_data(entities, crossover=0.8, save_raw=True):

@@ -1,0 +1,1 @@
+INVALID_ACCESS_MSG = "Invalid access token or mapping doesn't exist"
