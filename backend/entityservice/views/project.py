@@ -1,4 +1,5 @@
 import io
+from datetime import timedelta
 from io import BytesIO
 
 import minio
@@ -116,6 +117,31 @@ def project_clks_post(project_id):
     dp_id = db.get_dataprovider_id(get_db(), token)
 
     app.logger.info("Receiving data for: dpid: {}".format(dp_id))
+
+    # WIP SECTION
+    # Note we are using a different (and incorrect host) for this minio client
+    # to create valid external presigned addresses.
+    # TODO: port will matter too for localhost:8851
+    # TODO: when do we use this upload method? All the time? New api?
+    minioClient = minio.Minio('{}:8851'.format(config.DOMAIN),
+                              access_key=config.MINIO_ACCESS_KEY,
+                              secret_key=config.MINIO_SECRET_KEY,
+                              secure=config.TLS_ENABLED)
+
+    # presigned Put object URL for an object name, expires in 3 days.
+    receipt_token = generate_code()
+    try:
+        magic_upload_url = minioClient.presigned_put_object(bucket_name='raw-upload',
+                                                            object_name='{}.bin'.format(receipt_token),
+                                                            expires=timedelta(days=1))
+
+    except minio.ResponseError as err:
+        app.logger.warn(err)
+
+    app.logger.info(magic_upload_url)
+    return {'url': magic_upload_url}
+
+    # END WIP
 
     if headers['Content-Type'] == "application/json":
         # TODO: Previously, we were accessing the CLKs in a streaming fashion to avoid parsing the json in one hit. This
