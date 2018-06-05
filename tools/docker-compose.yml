@@ -81,6 +81,7 @@ services:
       - backend
     environment:
       TARGET_SERVICE: backend
+      MINIO_SERVICE: minio
       PUBLIC_PORT: 8851
 
 
