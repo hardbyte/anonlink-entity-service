@@ -14,6 +14,9 @@ class Config(object):
 
     DEBUG = os.environ.get("DEBUG", "false") == "true"
 
+    DOMAIN = os.environ.get("DOMAIN", "localhost")
+    TLS_ENABLED = os.environ.get("TLS_ENABLED", "false") == "true"
+
     LOGFILE = os.environ.get("LOGFILE")
     fileFormat = logging.Formatter('%(asctime)-15s %(name)-12s %(levelname)-8s: %(message)s')
     consoleFormat = logging.Formatter('%(asctime)-10s %(levelname)-8s %(message)s',
