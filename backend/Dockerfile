@@ -1,4 +1,4 @@
-FROM alpine:3.7
+FROM alpine:3.8
 
 EXPOSE 8000
 ADD requirements.txt /var/www/requirements.txt
@@ -38,4 +38,3 @@ CMD gunicorn entityservice:app \
     --graceful-timeout 120 \
     --log-level info \
     --access-logfile /var/log/gunicorn-access.log
-
