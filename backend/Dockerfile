@@ -11,8 +11,23 @@ WORKDIR /var/www
 # yajl, yajl-dev needed by ijson
 # gmp-dev, mpfr-dev, mpc1-dev needed by gmpy2
 
-RUN apk add --no-cache libstdc++ mpc1-dev yajl libpq && \
-    apk add --no-cache --virtual .build-deps g++ yajl-dev postgresql-dev libffi-dev gmp-dev mpfr-dev && \
+RUN apk add --no-cache \
+        libstdc++ \
+        g++ \
+        mpc1-dev \
+        yajl \
+        libpq \
+        openssl-dev \
+        libffi-dev \
+    && pip install cryptography \
+    # Bit of a hack https://github.com/pyca/cryptography/issues/4264
+    && apk del openssl-dev \
+    && apk add libressl-dev \
+    && apk add --no-cache \
+        yajl-dev \
+        postgresql-dev \
+        gmp-dev \
+        mpfr-dev && \
     pip3 install --upgrade pip setuptools && \
     pip3 install --upgrade -r requirements.txt && \
     apk del --no-cache .build-deps && \
