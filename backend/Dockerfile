@@ -29,9 +29,7 @@ RUN apk add --no-cache \
         gmp-dev \
         mpfr-dev && \
     pip3 install --upgrade pip setuptools && \
-    pip3 install --upgrade -r requirements.txt && \
-    apk del --no-cache .build-deps && \
-    rm -fr /tmp/* /var/cache/apk/* /root/.cache/pip
+    pip3 install --upgrade -r requirements.txt
 
 RUN python -c "import anonlink; print('anonlink version:', anonlink.__version__)" && \
     python -c "import clkhash; print('clkhash version:', clkhash.__version__)"
