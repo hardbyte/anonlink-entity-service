@@ -1,4 +1,4 @@
-FROM alpine:3.8
+FROM python:3.7-alpine3.8
 
 EXPOSE 8000
 ADD requirements.txt /var/www/requirements.txt
@@ -11,9 +11,8 @@ WORKDIR /var/www
 # yajl, yajl-dev needed by ijson
 # gmp-dev, mpfr-dev, mpc1-dev needed by gmpy2
 
-RUN apk add --no-cache python3 libstdc++ mpc1-dev yajl libpq && \
-    ln -s /usr/bin/python3 /usr/bin/python && \
-    apk add --no-cache --virtual .build-deps g++ python3-dev yajl-dev postgresql-dev libffi-dev gmp-dev mpfr-dev && \
+RUN apk add --no-cache libstdc++ mpc1-dev yajl libpq && \
+    apk add --no-cache --virtual .build-deps g++ yajl-dev postgresql-dev libffi-dev gmp-dev mpfr-dev && \
     pip3 install --upgrade pip setuptools && \
     pip3 install --upgrade -r requirements.txt && \
     apk del --no-cache .build-deps && \
