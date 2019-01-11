@@ -60,6 +60,7 @@ node('docker&&multicore&&ram') {
           String imageNameLabel = "quay.io/n1analytics/entity-benchmark:latest"
           dockerUtils.dockerCommand("build -t ${imageNameLabel} .")
         }
+        /* Note the nginx frontend get's rebuilt with docs included later. */
         gitCommit.setSuccessStatus(gitContextDockerBuild)
       } catch (err) {
         print("Error in docker build stage:\n" + err)
@@ -171,11 +172,11 @@ node('docker&&multicore&&ram') {
     stage('Documentation') {
       gitCommit.setInProgressStatus(gitContextDocumentation);
       String dockerContainerDocsBuilderName = composeProject + "docbuilder"
-      // TODO Update this stage with the library.
+
       try {
         sh """
           mkdir -p html
-          docker run -v `pwd`:/src --name ${dockerContainerDocsBuilderName} quay.io/n1analytics/entity-app:doc-builder
+          docker run -v `pwd`:/src --name ${dockerContainerDocsBuilderName} quay.io/n1analytics/entity-docs:latest
           docker cp ${dockerContainerDocsBuilderName}:/build `pwd`/html
           cd html/build
           zip -q -r n1-docs.zip *
