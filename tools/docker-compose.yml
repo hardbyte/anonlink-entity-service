@@ -7,8 +7,6 @@ services:
       - POSTGRES_PASSWORD=rX%QpV7Xgyrz
     volumes:
       - psql:/var/lib/postgresql/data
-    #ports:
-    #- 5432:5432
 
   minio:
     image: minio/minio:RELEASE.2017-02-16T01-47-30Z
@@ -24,7 +22,7 @@ services:
     image: redis:5.0
 
 
-  # The flask application server
+  # The flask-based application server
   backend:
     image: quay.io/n1analytics/entity-app
     environment:
@@ -38,7 +36,7 @@ services:
       - redis
 
 
-  # The application server can also setup the database
+  # Job to setup the database
   db_init:
     image: quay.io/n1analytics/entity-app
     environment:
@@ -75,13 +73,15 @@ services:
 
   nginx:
     image: quay.io/n1analytics/entity-nginx
+    # We don't expose a particular port as our CI often runs concurrently commit
+    #ports:
+    #  - 8851:8851
     ports:
-      - 8851:8851
+      - 8851
     depends_on:
       - backend
     environment:
       TARGET_SERVICE: backend
-      PUBLIC_PORT: 8851
 
 
   # A celery monitor. Useful for debugging but okay to remain
