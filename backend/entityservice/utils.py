@@ -192,7 +192,7 @@ def similarity_matrix_from_csv_bytes(data):
     for row in rows:
         index_1, index_2, score = row.split(',')
         # Note we rewrite in a different order because we love making work for ourselves
-        yield (int(index_1), float(score), int(index_2))
+        yield (float(score), int(index_1), int(index_2))
 
 
 def convert_mapping_to_list(permutation):
