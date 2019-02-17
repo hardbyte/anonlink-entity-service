@@ -155,9 +155,10 @@ def score_mapping(mapping, truth_a, truth_b, mask_a, mask_b):
     return tp, tn, fp, fn
 
 
-def compose_result(status, tt, experiment, sizes, threshold):
+def compose_result(run_id, status, tt, experiment, sizes, threshold):
     tp, tn, fp, fn = tt
     result = {'experiment': experiment,
+              'run_id': run_id,
               'threshold': threshold,
               'sizes': {
                   'size_a': sizes[0],
@@ -254,7 +255,7 @@ def run_experiments(config):
                 mapping = json.loads(mapping)['mapping']
                 mapping = {int(k): int(v) for k, v in mapping.items()}
                 tt = score_mapping(mapping, *load_truth(config, size_a, size_b))
-                result = compose_result(status, tt, experiment, (size_a, size_b), threshold)
+                result = compose_result(run_id, status, tt, experiment, (size_a, size_b), threshold)
                 results['experiments'].append(result)
                 logger.info('cleaning up...')
                 delete_resources(config, credentials, run)

@@ -26,7 +26,7 @@ spec:
           - name: SERVER
             value: "https://testing.es.data61.xyz"
           - name: TIMEOUT
-            value: "1200"
+            value: "1800"
           - name: EXPERIMENT
             value: "/config/experiments.json"
           - name: DATA_PATH
