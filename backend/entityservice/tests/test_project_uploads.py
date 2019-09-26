@@ -1,6 +1,6 @@
-import time
 import os
 import pytest
+from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from entityservice.serialization import binary_pack_filters
 from entityservice.tests.config import url
@@ -194,20 +194,17 @@ def test_project_json_data_upload_with_too_large_encoded_size(
         result_type=result_type,
         encoding_size=4096
     )
-    # Just initializing it before the loop.
-    project_description = {'error': False}
-    rep = 0
-    max_rep = 10
-    while not project_description['error'] and rep < max_rep:
-        rep += 1
-        time.sleep(1)
+
+    @retry(wait=wait_random_exponential(max=120), stop=stop_after_attempt(10))
+    def description_is_error():
         project_description = requests.get(
             url + '/projects/{}'.format(new_project_data['project_id']),
             headers={'Authorization': new_project_data['result_token']}
         ).json()
         assert 'error' in project_description
+        assert project_description['error']
 
-    assert project_description['error']
+    description_is_error()
 
 
 def test_project_binary_data_invalid_buffer_size(
