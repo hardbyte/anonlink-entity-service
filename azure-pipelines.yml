@@ -216,7 +216,7 @@ stages:
         --set api.app.image.tag=$(DOCKER_TAG) \
         --set api.dbinit.image.tag=$(DOCKER_TAG) \
         --set workers.image.tag=$(DOCKER_TAG) \
-        --set workers.replicaCount=4
+        --set workers.replicaCount=8
       env:
         KUBECONFIG: $(KUBECONFIGFILE)
       displayName: 'Kubernetes deployment'
