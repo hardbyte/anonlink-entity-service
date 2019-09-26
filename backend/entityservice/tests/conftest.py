@@ -7,15 +7,16 @@ import itertools
 from entityservice.tests.util import create_project_upload_fake_data, delete_project, temporary_blank_project, \
     create_project_no_data
 
-THROTTLE_SLEEP = 0.2
+THROTTLE_SLEEP = 0.010
 
 
 @pytest.fixture(scope='session')
 def requests():
     """
     We inject the requests session.
+
     For now we just add a small sleep after every request to ensure we don't get throttled when
-    tests run back to back. Note the rate limit in nginx is 10 requests per ip per second.
+    tests run back to back. Note the rate limit in nginx is ~ 100 requests per ip per second.
     """
     def delay_next(r, *args, **kwargs):
         time.sleep(THROTTLE_SLEEP)
