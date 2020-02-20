@@ -13,22 +13,116 @@
 # - `extraJobs` can contain a list of jobs to do in the same stage which are dependent on the built and pushed docker image.
 
 parameters:
-  dockerFilePath: ''
-  folder: ''
-  imageName: ''
-  imageTag: ''
-  jobName: ''
-  skip: 'False'
-  dockerBuildArgs: ''
-  extraJobs: []
-  dependsOn: ''
+  - name: 'dockerFilePath'
+    default: ''
+  - name: 'folder'
+    default: ''
+  - name: 'imageName'
+    default: ''
+  - name: 'imageTag'
+    default: ''
+  - name: 'jobName'
+    default: ''
+  - name: 'dockerBuildArgs'
+    default: ''
+  - name: 'extraJobs'
+    type: object
+    default: []
+  - name: 'dependsOn'
+    default: ''
+  - name: 'skip'
+    default: '$[false]'
+
 
 jobs:
+- job: skipcheck1
+  pool:
+    vmImage: "ubuntu-latest"
+  condition: eq(variables['SKIP'], 'False')
+  dependsOn: ${{ parameters.dependsOn }}
+  variables:
+    SKIP: ${{ parameters.skip }}
+  steps:
+    - bash: |
+        echo "skip job variant 1"
+        echo "Variable SKIP = \"$SKIP\""
+        echo "Variable SKIP 2 = $(SKIP)"
+        echo "Variable SKIP eq false = ${{ eq(variables.SKIP, false) }}"
+        echo "Variable SKIP eq true = ${{ eq(variables.SKIP, true) }}"
+        echo "Not Variable SKIP = ${{ not(variables.SKIP) }}"
+
+- job: skipcheck2
+  pool:
+    vmImage: "ubuntu-latest"
+  condition: eq(variables['SKIP'], 'False')
+  dependsOn: ${{ parameters.dependsOn }}
+  variables:
+    SKIP: ${{ parameters.skip }}
+  steps:
+    - bash: |
+        echo "skip job variant 1"
+        echo "Variable SKIP = \"$SKIP\""
+        echo "Variable SKIP 2 = $(SKIP)"
+        echo "Variable SKIP eq false = ${{ eq(variables.SKIP, false) }}"
+        echo "Variable SKIP eq true = ${{ eq(variables.SKIP, true) }}"
+        echo "Not Variable SKIP = ${{ not(variables.SKIP) }}"
+
+- job: skipcheck3
+  pool:
+    vmImage: "ubuntu-latest"
+  condition: eq(variables['SKIP'], False)
+  dependsOn: ${{ parameters.dependsOn }}
+  variables:
+    SKIP: ${{ parameters.skip }}
+  steps:
+    - bash: |
+        echo "skip job variant 1"
+        echo "Variable SKIP = \"$SKIP\""
+        echo "Variable SKIP 2 = $(SKIP)"
+        echo "Variable SKIP eq False = ${{ eq(variables.SKIP, False) }}"
+        echo "Variable SKIP eq false = ${{ eq(variables.SKIP, false) }}"
+        echo "Variable SKIP eq true = ${{ eq(variables.SKIP, true) }}"
+        echo "Not Variable SKIP = ${{ not(variables.SKIP) }}"
+
+- job: skipcheck4
+  pool:
+    vmImage: "ubuntu-latest"
+  condition: eq(variables['SKIP'], false)
+  dependsOn: ${{ parameters.dependsOn }}
+  variables:
+    SKIP: ${{ parameters.skip }}
+  steps:
+    - bash: |
+        echo "skip job variant 1"
+        echo "Variable SKIP = \"$SKIP\""
+        echo "Variable SKIP 2 = $(SKIP)"
+        echo "Variable SKIP eq False = ${{ eq(variables.SKIP, False) }}"
+        echo "Variable SKIP eq false = ${{ eq(variables.SKIP, false) }}"
+        echo "Variable SKIP eq true = ${{ eq(variables.SKIP, true) }}"
+        echo "Not Variable SKIP = ${{ not(variables.SKIP) }}"
+
+- job: skipcheck5
+  pool:
+    vmImage: "ubuntu-latest"
+  condition: not(eq(variables['SKIP'], 'True'))
+  dependsOn: ${{ parameters.dependsOn }}
+  variables:
+    SKIP: ${{ parameters.skip }}
+  steps:
+    - bash: |
+        echo "skip job variant 1"
+        echo "Variable SKIP = \"$SKIP\""
+        echo "Variable SKIP 2 = $(SKIP)"
+        echo "Variable SKIP eq False = ${{ eq(variables.SKIP, False) }}"
+        echo "Variable SKIP eq false = ${{ eq(variables.SKIP, false) }}"
+        echo "Variable SKIP eq true = ${{ eq(variables.SKIP, true) }}"
+        echo "Not Variable SKIP = ${{ not(variables.SKIP) }}"
+
 - job: ${{ parameters.jobName }}
   displayName: ${{ parameters.jobName }}
   pool:
     vmImage: "ubuntu-latest"
-  condition: and(succeeded(), eq(variables['SKIP'], 'False'))
+  condition: ${{ eq(variables['SKIP'], 'False') }}
   dependsOn: ${{ parameters.dependsOn }}
   variables:
     DOCKER_TAG: ${{ parameters.imageTag }}
@@ -44,6 +138,10 @@ jobs:
 
         echo "Variable DOCKER_TAG = \"$DOCKER_TAG\""
         echo "Variable SKIP = \"$SKIP\""
+        echo "Variable SKIP 2 = $(SKIP)"
+        echo "Variable SKIP eq false = ${{ eq(variables.SKIP, false) }}"
+        echo "Variable SKIP eq true = ${{ eq(variables.SKIP, true) }}"
+        echo "Not Variable SKIP = ${{ not(variables.SKIP) }}"
         echo "Variable DOCKER_BUILD_ARGS = \"$DOCKER_BUILD_ARGS\""
       env:
         DOCKER_TAG: $(DOCKER_TAG)
