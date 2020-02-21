@@ -48,11 +48,8 @@ jobs:
     SKIP: ${{ parameters.skipf }}
   steps:
     - bash: |
-        echo "skip job variant 1"
-        echo "Variable SKIP = \"$SKIP\""
-        echo "Variable SKIP 2 = $(SKIP)"
-        echo "condition true ?= ${{ not('${{ parameters.skipt }}') }}"
-        echo "condition false ?= ${{ not('${{ parameters.skipf }}') }}"
+        echo "skip job if false"
+        echo "dockerBuildArgs ${{ parameters.dockerBuildArgs }}"
 
 - job: skipchecktrue
   pool:
@@ -63,62 +60,8 @@ jobs:
     SKIP: ${{ parameters.skipt }}
   steps:
     - bash: |
-        echo "skip job variant 1"
-        echo "Variable SKIP = \"$SKIP\""
-        echo "Variable SKIP 2 = $(SKIP)"
-        echo "condition true ?= ${{ not('${{ parameters.skipt }}') }}"
-        echo "condition false ?= ${{ not('${{ parameters.skipf }}') }}"
-
-- job: skipcheck3
-  pool:
-    vmImage: "ubuntu-latest"
-  condition: eq(variables['SKIP'], False)
-  dependsOn: ${{ parameters.dependsOn }}
-  variables:
-    SKIP: ${{ parameters.skip }}
-  steps:
-    - bash: |
-        echo "skip job variant 1"
-        echo "Variable SKIP = \"$SKIP\""
-        echo "Variable SKIP 2 = $(SKIP)"
-        echo "Variable SKIP eq False = ${{ eq(variables.SKIP, False) }}"
-        echo "Variable SKIP eq false = ${{ eq(variables.SKIP, false) }}"
-        echo "Variable SKIP eq true = ${{ eq(variables.SKIP, true) }}"
-        echo "Not Variable SKIP = ${{ not(variables.SKIP) }}"
-
-- job: skipcheck4
-  pool:
-    vmImage: "ubuntu-latest"
-  condition: eq(variables['SKIP'], false)
-  dependsOn: ${{ parameters.dependsOn }}
-  variables:
-    SKIP: ${{ parameters.skip }}
-  steps:
-    - bash: |
-        echo "skip job variant 1"
-        echo "Variable SKIP = \"$SKIP\""
-        echo "Variable SKIP 2 = $(SKIP)"
-        echo "Variable SKIP eq False = ${{ eq(variables.SKIP, False) }}"
-        echo "Variable SKIP eq false = ${{ eq(variables.SKIP, false) }}"
-        echo "Variable SKIP eq true = ${{ eq(variables.SKIP, true) }}"
-        echo "Not Variable SKIP = ${{ not(variables.SKIP) }}"
-
-- job: skipcheck5
-  pool:
-    vmImage: "ubuntu-latest"
-  condition: not(eq(variables['SKIP'], 'True'))
-  dependsOn: ${{ parameters.dependsOn }}
-  variables:
-    SKIP: ${{ parameters.skip }}
-  steps:
-    - bash: |
-        echo "skip job variant 1"
-        echo "Variable SKIP = \"$SKIP\""
-        echo "Variable SKIP 2 = $(SKIP)"
-        echo "Variable SKIP eq False = ${{ eq(variables.SKIP, False) }}"
-        echo "Variable SKIP eq false = ${{ eq(variables.SKIP, false) }}"
-        echo "Variable SKIP eq true = ${{ eq(variables.SKIP, true) }}"
-        echo "Not Variable SKIP = ${{ not(variables.SKIP) }}"
+        echo "skip job if true"
+        echo "dockerBuildArgs ${{ parameters.dockerBuildArgs }}"
 
 - job: ${{ parameters.jobName }}
   displayName: ${{ parameters.jobName }}
