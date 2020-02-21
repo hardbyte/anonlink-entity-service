@@ -42,7 +42,7 @@ jobs:
 - job: skipcheckfalse
   pool:
     vmImage: "ubuntu-latest"
-  condition: not('${{ parameters.skipf }}')
+  condition: not(${{ parameters.skipf }})
   dependsOn: ${{ parameters.dependsOn }}
   variables:
     SKIP: ${{ parameters.skipf }}
@@ -57,7 +57,7 @@ jobs:
 - job: skipchecktrue
   pool:
     vmImage: "ubuntu-latest"
-  condition: not('${{ parameters.skipt }}')
+  condition: not(${{ parameters.skipt })
   dependsOn: ${{ parameters.dependsOn }}
   variables:
     SKIP: ${{ parameters.skipt }}
