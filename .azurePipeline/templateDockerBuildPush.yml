@@ -33,9 +33,9 @@ parameters:
   - name: 'skip'
     default: '$[false]'
   - name: 'skipf'
-    default: '$[false]'
+    default: false
   - name: 'skipt'
-    default: '$[true]'
+    default: true
 
 
 jobs:
