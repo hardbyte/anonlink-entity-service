@@ -32,40 +32,42 @@ parameters:
     default: ''
   - name: 'skip'
     default: '$[false]'
+  - name: 'skipf'
+      default: '$[false]'
+  - name: 'skipt'
+      default: '$[true]'
 
 
 jobs:
-- job: skipcheck1
+- job: skipcheckfalse
   pool:
     vmImage: "ubuntu-latest"
-  condition: eq(variables['SKIP'], 'False')
+  condition: not('${{ parameters.skipf }}')
   dependsOn: ${{ parameters.dependsOn }}
   variables:
-    SKIP: ${{ parameters.skip }}
+    SKIP: ${{ parameters.skipf }}
   steps:
     - bash: |
         echo "skip job variant 1"
         echo "Variable SKIP = \"$SKIP\""
         echo "Variable SKIP 2 = $(SKIP)"
-        echo "Variable SKIP eq false = ${{ eq(variables.SKIP, false) }}"
-        echo "Variable SKIP eq true = ${{ eq(variables.SKIP, true) }}"
-        echo "Not Variable SKIP = ${{ not(variables.SKIP) }}"
+        echo "condition true ?= ${{ not('${{ parameters.skipt }}') }}"
+        echo "condition false ?= ${{ not('${{ parameters.skipf }}') }}"
 
-- job: skipcheck2
+- job: skipchecktrue
   pool:
     vmImage: "ubuntu-latest"
-  condition: eq(variables['SKIP'], 'False')
+  condition: not('${{ parameters.skipt }}')
   dependsOn: ${{ parameters.dependsOn }}
   variables:
-    SKIP: ${{ parameters.skip }}
+    SKIP: ${{ parameters.skipt }}
   steps:
     - bash: |
         echo "skip job variant 1"
         echo "Variable SKIP = \"$SKIP\""
         echo "Variable SKIP 2 = $(SKIP)"
-        echo "Variable SKIP eq false = ${{ eq(variables.SKIP, false) }}"
-        echo "Variable SKIP eq true = ${{ eq(variables.SKIP, true) }}"
-        echo "Not Variable SKIP = ${{ not(variables.SKIP) }}"
+        echo "condition true ?= ${{ not('${{ parameters.skipt }}') }}"
+        echo "condition false ?= ${{ not('${{ parameters.skipf }}') }}"
 
 - job: skipcheck3
   pool:
