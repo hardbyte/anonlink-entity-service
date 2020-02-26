@@ -31,37 +31,37 @@ parameters:
   - name: 'dependsOn'
     default: ''
   - name: 'skip'
-    default: '$[false]'
-  - name: 'skipf'
     default: false
-  - name: 'skipt'
-    default: true
+  - name: 'dockerBuildArgsVersion'
+    default: ''
 
 
 jobs:
 - job: skipcheckfalse
   pool:
     vmImage: "ubuntu-latest"
-  condition: not(${{ parameters.skipf }})
+  condition: not(${{ parameters.skip }})
   dependsOn: ${{ parameters.dependsOn }}
   variables:
-    SKIP: ${{ parameters.skipf }}
+    SKIP: ${{ parameters.skip }}
   steps:
     - bash: |
         echo "skip job if false"
         echo "dockerBuildArgs ${{ parameters.dockerBuildArgs }}"
+        echo "dockerBuildArgsVersion ${{ parameters.dockerBuildArgsVersion }}"
 
 - job: skipchecktrue
   pool:
     vmImage: "ubuntu-latest"
-  condition: not(${{ parameters.skipt }})
+  condition: ${{ parameters.skip }}
   dependsOn: ${{ parameters.dependsOn }}
   variables:
-    SKIP: ${{ parameters.skipt }}
+    SKIP: ${{ parameters.skip }}
   steps:
     - bash: |
         echo "skip job if true"
         echo "dockerBuildArgs ${{ parameters.dockerBuildArgs }}"
+        echo "dockerBuildArgsVersion ${{ parameters.dockerBuildArgsVersion }}"
 
 - job: ${{ parameters.jobName }}
   displayName: ${{ parameters.jobName }}
