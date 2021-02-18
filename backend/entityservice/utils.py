@@ -13,8 +13,10 @@ from flask import request
 from structlog import get_logger
 import yaml
 
+from entityservice.database.models.models import Project, Dataprovider, Upload
 from entityservice.errors import InvalidConfiguration
 from entityservice.database import DBConn, get_number_parties_uploaded, get_number_parties_ready, get_project_column
+from entityservice.database import db_session
 
 logger = get_logger()
 
@@ -147,6 +149,19 @@ def clks_uploaded_to_project(project_id, check_data_ready=False):
     """
     log = logger.bind(pid=project_id)
     log.debug("Counting contributing parties")
+    orm_project = db_session.query(Project).filter(project_id == project_id).first()
+
+    """
+        FROM dataproviders, uploads
+        WHERE
+          dataproviders.project = %s AND
+          uploads.dp = dataproviders.id AND
+          dataproviders.uploaded = 'done' AND
+          uploads.state = 'ready'
+    """
+    #  db_session.query(Dataprovider).join(Upload).filter(Dataprovider.project == project_id).filter(Dataprovider.uploaded == DataProviderUploadStatus.done).filter(Upload.state == UploadState.ready).count()
+
+
     with DBConn() as conn:
         if check_data_ready:
             parties_contributed = get_number_parties_ready(conn, project_id)

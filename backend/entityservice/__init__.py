@@ -5,6 +5,7 @@ from flask import g, request
 import structlog
 from tenacity import RetryError
 
+from entityservice.database import db_session
 from entityservice.logger_setup import setup_logging
 
 # Logging setup
@@ -62,6 +63,11 @@ def before_request():
                 headers[header] = request.headers[header]
         g.log.bind(**headers)
     g.flask_tracer = flask_tracer
+
+
+@app.teardown_appcontext
+def shutdown_session(exception=None):
+    db_session.remove()
 
 
 if __name__ == '__main__':

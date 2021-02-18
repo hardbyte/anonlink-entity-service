@@ -56,6 +56,14 @@ def init_db_pool(db_min_connections, db_max_connections):
         logger.warning("The database connection pool has already been initialized.")
 
 
+def get_database_uri():
+    db = config.DATABASE
+    host = config.DATABASE_SERVER
+    user = config.DATABASE_USER
+    pw = config.DATABASE_PASSWORD
+    return f"postgresql://{user}:{pw}@{host}:5432/{db}"
+
+
 @atexit.register
 def close_db_pool():
     """
